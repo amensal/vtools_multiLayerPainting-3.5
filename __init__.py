@@ -17,15 +17,16 @@ if "bpy" in locals():
     importlib.reload(uiLayerTree)
     importlib.reload(layerFilters)
     importlib.reload(mergeLayers)
+    importlib.reload(paintingUtils)
     
 else:
-      
     from vtools_multiLayerPainting import createNodes
     from vtools_multiLayerPainting import paintingLayers
     from vtools_multiLayerPainting import paintingSet
     from vtools_multiLayerPainting import uiLayerTree
     from vtools_multiLayerPainting import layerFilters
     from vtools_multiLayerPainting import mergeLayers
+    from vtools_multiLayerPainting import paintingUtils
     
     
     #remove when releasingp
@@ -36,6 +37,7 @@ else:
     importlib.reload(uiLayerTree) 
     importlib.reload(layerFilters)
     importlib.reload(mergeLayers)
+    importlib.reload(paintingUtils)
     
     
 import bpy 
@@ -373,7 +375,8 @@ modules = (
     paintingSet,
     uiLayerTree,
     layerFilters,
-    mergeLayers
+    mergeLayers,
+    paintingUtils
 ) 
 
 classes = (VTOOLS_PT_MultiLayerPainting, VTOOLS_PT_PaintingSets, VTOOLS_PT_LayerTree, VTOOLS_PT_LayerFiltersProperties, VTOOLS_PT_LayerProperties, VTOOLS_PT_MergeProperties, )
@@ -400,6 +403,11 @@ def register():
 def unregister():
     from bpy.utils import unregister_class
     
+    #unregister
+    for cls in classes:
+        bpy.utils.unregister_class(cls)
+    
+    """
     #clases     
     bpy.utils.unregister_class(VTOOLS_PT_PaintingSets)
     bpy.utils.unregister_class(VTOOLS_PT_LayerTree)
@@ -407,7 +415,7 @@ def unregister():
     bpy.utils.unregister_class(VTOOLS_PT_LayerFiltersProperties)
     bpy.utils.unregister_class(VTOOLS_PT_LayerProperties)
     bpy.utils.unregister_class(VTOOLS_PT_MultiLayerPainting)
-    
+    """
         
     #submodules
     for mod in modules:
