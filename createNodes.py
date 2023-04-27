@@ -27,8 +27,8 @@ def create_layerSetType():
     
     mt_paintSetInput.location = (-500,0)
 
-    n_colorSetBelow.default_value = [1,1,1,1]
-    n_alphaSetBelow.default_value = [1,1,1,1]
+    n_colorSetBelow.default_value = [0,0,0,0]
+    n_alphaSetBelow.default_value = [0,0,0,0]
     
     # create group output
     mt_colorOutput = mt_node.nodes.new('NodeGroupOutput')
