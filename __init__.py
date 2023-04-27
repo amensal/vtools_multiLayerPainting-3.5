@@ -104,7 +104,7 @@ class VTOOLS_PT_LayerTree(bpy.types.Panel):
     bl_parent_id = "VTOOLS_PT_MultiLayerPainting"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    #bl_options = {'DEFAULT_CLOSED'}
+    bl_options = {'DEFAULT_CLOSED'}
     
 
     def draw(self, context):
@@ -141,7 +141,12 @@ class VTOOLS_PT_LayerTree(bpy.types.Panel):
                   
                 col = row.column(align=True)
                 col.operator(paintingLayers.VTOOLS_OP_AddPaintingLayer.bl_idname, text="",icon='ADD')
-                col.operator(paintingLayers.VTOOLS_OP_DeletePaintingLayer.bl_idname, text="", icon='REMOVE')
+                """
+                op = col.operator(paintingLayers.VTOOLS_OP_DeletePaintingLayer.bl_idname, text="", icon='REMOVE')
+                op = col.operator(paintingLayers.VTOOLS_OP_DeletePaintingLayer.bl_idname, text="", icon='REMOVE')
+                op.deleteAlsoImage = True
+                """
+                col.menu(paintingLayers.VTOOLS_MT_deletePaintingLayerMenu.bl_idname, icon = "REMOVE", text= "")
                 col.operator(paintingLayers.VTOOLS_OP_DuplicatePaintingLayer.bl_idname, text="", icon='DUPLICATE')
 
                 col.separator()

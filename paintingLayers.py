@@ -392,9 +392,11 @@ class VTOOLS_OP_CollectLayersFromSet(bpy.types.Operator):
 class VTOOLS_OP_DeletePaintingLayer(bpy.types.Operator):
     bl_idname = "vtoolpt.deletepaintinglayer"
     bl_label = "Delete Layer"
-    bl_description = "Delete selected painting layer"
+    bl_description = "Delete selected painting layer. Delete also image option only works if image does not use fake user"
     bl_options = {'REGISTER', 'UNDO'}
-        
+    
+    deleteAlsoImage : bpy.props.BoolProperty(default=False)
+    
     def deleteLayerImages(self,pActiveLayer):
         
         colorImage = None
@@ -402,14 +404,14 @@ class VTOOLS_OP_DeletePaintingLayer(bpy.types.Operator):
         
         if pActiveLayer.node_tree != None:
             colorImage = pActiveLayer.node_tree.nodes["Color"].image
-            maskImage = pActiveLayer.node_tree.nodes["Mask"].image
+            maskImage = pActiveLayer.node_tree.nodes["Alpha"].image
         
         if colorImage != None:
-            if colorImage.users == 1:  
+            if colorImage.use_fake_user == False:  
                 bpy.data.images.remove(colorImage)
         
         if maskImage != None:
-            if maskImage.users == 1:  
+            if maskImage.use_fake_user == False:  
                 bpy.data.images.remove(maskImage)
             
         return {'FINISHED'}
@@ -454,8 +456,11 @@ class VTOOLS_OP_DeletePaintingLayer(bpy.types.Operator):
             
             alOver = getLayerOverSelected()
             alDown = getLayerDownSelected()  
-        
-            self.deleteLayerImages(al)
+            
+            if self.deleteAlsoImage == True:
+                print("DELETE IMAGES")
+                self.deleteLayerImages(al)
+                
             self.deleteLayerNode(al) 
             self.bridgeLayers(al, alDown, alOver)
         
@@ -465,6 +470,19 @@ class VTOOLS_OP_DeletePaintingLayer(bpy.types.Operator):
         return {'FINISHED'}
 
 
+# ------------- MENU --------------------#
+
+class VTOOLS_MT_deletePaintingLayerMenu(bpy.types.Menu):
+    bl_label = "Delete Painting Layer"
+    bl_idname = "VTOOLS_MT_deletePaintingLayerMenu"
+
+    def draw(self, context):
+        layout = self.layout
+        layout.operator(VTOOLS_OP_DeletePaintingLayer.bl_idname, icon='REMOVE', text="Remove only layer")
+        op = layout.operator(VTOOLS_OP_DeletePaintingLayer.bl_idname, icon='REMOVE', text="Remove layer and images")
+        op.deleteAlsoImage = True
+                        
+# ----------------------------------------------#
             
 class VTOOLS_OP_AddPaintingLayer(bpy.types.Operator):
     bl_idname = "vtoolpt.addpaintinglayer"
@@ -666,11 +684,13 @@ def register():
     
     bpy.utils.register_class(VTOOLS_OP_AddPaintingLayer)
     bpy.utils.register_class(VTOOLS_OP_DeletePaintingLayer)
+    bpy.utils.register_class(VTOOLS_MT_deletePaintingLayerMenu)
     bpy.utils.register_class(VTOOLS_OP_MovePaintingLayerUp)
     bpy.utils.register_class(VTOOLS_OP_MovePaintingLayerDown)
     bpy.utils.register_class(VTOOLS_OP_CollectLayersFromSet)
     bpy.utils.register_class(VTOOLS_OP_DuplicatePaintingLayer)
     bpy.utils.register_class(VTOOLS_OP_SelectLayerColorSpace)
+    
     
     return {'FINISHED'}
     
@@ -678,6 +698,7 @@ def register():
 def unregister():
     bpy.utils.unregister_class(VTOOLS_OP_AddPaintingLayer)
     bpy.utils.unregister_class(VTOOLS_OP_DeletePaintingLayer)
+    bpy.utils.unregister_class(VTOOLS_MT_deletePaintingLayerMenu)
     bpy.utils.unregister_class(VTOOLS_OP_MovePaintingLayerUp)
     bpy.utils.unregister_class(VTOOLS_OP_MovePaintingLayerDown)
     bpy.utils.unregister_class(VTOOLS_OP_CollectLayersFromSet)
