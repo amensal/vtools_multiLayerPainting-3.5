@@ -279,7 +279,7 @@ class VTOOLS_PT_LayerProperties(bpy.types.Panel):
         if layerNode != None:
             
             if colorSpace == "color":
-                colorTextureNode = layerNode.node_tree.nodes["Color"]
+                colorTextureNode = layerNode.node_tree.nodes["MT_TexColor"]
                 
                 
                 layout.separator()
@@ -299,7 +299,7 @@ class VTOOLS_PT_LayerProperties(bpy.types.Panel):
                     
                 
             else:
-                maskTextureNode = layerNode.node_tree.nodes["Alpha"]
+                maskTextureNode = layerNode.node_tree.nodes["MT_TexMask"]
                 
                 layout.separator()
                 
@@ -307,15 +307,16 @@ class VTOOLS_PT_LayerProperties(bpy.types.Panel):
                 row.label(text="", icon="IMAGE_ALPHA")
                 row.label(text="Transform:")
                 
-                layout.prop(layerNode.node_tree.nodes["maskMapNode"], "scale", text="Scale")
-                layout.prop(layerNode.node_tree.nodes["maskMapNode"], "rotation", text="Rotation")
-                layout.prop(layerNode.node_tree.nodes["maskMapNode"], "translation", text="Location")
+                layout.prop(layerNode.node_tree.nodes["maskMapNode"].inputs['Scale'], "default_value", text="Scale")
+                layout.prop(layerNode.node_tree.nodes["maskMapNode"].inputs['Rotation'], "default_value", text="Rotation")
+                layout.prop(layerNode.node_tree.nodes["maskMapNode"].inputs['Location'], "default_value", text="Location")
                 
                 layout.separator()
                 layout.label(text="UV Map:")
                 if hasattr(layerNode.node_tree.nodes["maskUVNode"], "draw_buttons_ext"):
                     layerNode.node_tree.nodes["maskUVNode"].draw_buttons_ext(context, layout)
-                       
+
+                           
         else:
             layout.label(text="No layer selected")
             

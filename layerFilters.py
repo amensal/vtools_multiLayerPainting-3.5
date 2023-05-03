@@ -415,7 +415,7 @@ class VTOOLS_OP_AddLayerFilter(bpy.types.Operator):
         filterNode.label = filterNode.name
         filterNode.name = "MLPFilterNode" + filterNode.name
         
-        colorTextureNode = layerNode.node_tree.nodes["Color"]
+        colorTextureNode = layerNode.node_tree.nodes["MT_TexColor"]
         filterInputNode = layerNode.node_tree.nodes["MT_filtersColorInput"]
         filterOutputNode = layerNode.node_tree.nodes["MT_filtersColorOutput"]
         

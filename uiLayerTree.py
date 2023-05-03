@@ -18,8 +18,8 @@ def deselectAllLayerNodes():
     for i in range(0, len(bpy.context.scene.mlpLayerTreeCollection)):
         lNode = paintingLayers.getLayerNodeById(i)
         if lNode.node_tree != None:
-            colorNode = lNode.node_tree.nodes["Color"]
-            maskNode = lNode.node_tree.nodes["Alpha"]
+            colorNode = lNode.node_tree.nodes["MT_TexColor"]
+            maskNode = lNode.node_tree.nodes["MT_TexMask"]
             
             lNode.node_tree.nodes.active = lNode.node_tree.nodes[0]
             colorNode.select = False
@@ -56,7 +56,7 @@ def cb_selectPaintingLayer(self,value):
         
         cs = paintingLayers.getLayerColorSpace()
         if cs == "color":
-            colorNode = lNode.node_tree.nodes["Color"]
+            colorNode = lNode.node_tree.nodes["MT_TexColor"]
             colorNode.select = True
             lNode.node_tree.nodes.active = colorNode
             
@@ -71,7 +71,7 @@ def cb_selectPaintingLayer(self,value):
                 bpy.context.tool_settings.image_paint.canvas = None
                  
         else:
-            maskNode = lNode.node_tree.nodes["Alpha"]
+            maskNode = lNode.node_tree.nodes["MT_TexMask"]
             maskNode.select = True
             lNode.node_tree.nodes.active = maskNode
             
@@ -83,11 +83,12 @@ def cb_selectPaintingLayer(self,value):
             else:
                 bpy.context.tool_settings.image_paint.canvas = None
         
-        if lNode.node_tree.nodes["Alpha"].image != None:
+        """
+        if lNode.node_tree.nodes["MT_TexMask"].image != None:
             lNode.node_tree.nodes["PL_InputMaskOpacity"].outputs[0].default_value = 1
         else:
             lNode.node_tree.nodes["PL_InputMaskOpacity"].outputs[0].default_value = 0
-        
+        """
     else:
         deselectAllLayerNodes()
         #bpy.context.object.active_material.paint_active_slot = -1
