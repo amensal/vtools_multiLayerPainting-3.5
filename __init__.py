@@ -57,9 +57,9 @@ def getPaintingActiveImage():
             selectedLayer = paintingLayers.getLayerSelectedFromTree()
         
             if cs == "color":
-                activeImage = layerNode.node_tree.nodes["Color"].image
+                activeImage = layerNode.node_tree.nodes["MT_TexColor"].image
             else:
-                activeImage = layerNode.node_tree.nodes["Alpha"].image
+                activeImage = layerNode.node_tree.nodes["MT_TexMask"].image
                 
     return activeImage
       
@@ -126,7 +126,7 @@ class VTOOLS_PT_LayerTree(bpy.types.Panel):
                         #layout.label(text="Layer Properties")
 
                         col = layout.row(align=True)
-                        col.prop(layerNode.node_tree.nodes["PL_BlendMode"], "blend_type", text="")
+                        col.prop(layerNode.node_tree.nodes["MT_layerBlendMode"], "blend_type", text="")
                         col.separator()
                         col.label(icon="HIDE_OFF")
                         col.prop(layerNode.inputs["Opacity"], "default_value", text="", slider=True)
@@ -164,11 +164,11 @@ class VTOOLS_PT_LayerTree(bpy.types.Panel):
                     
                                   
                         if cs == "color":
-                            activeImage = layerNode.node_tree.nodes["Color"].image
-                            layout.template_ID(layerNode.node_tree.nodes["Color"], "image", new="image.new", open="image.open")
+                            activeImage = layerNode.node_tree.nodes["MT_TexColor"].image
+                            layout.template_ID(layerNode.node_tree.nodes["MT_TexColor"], "image", new="image.new", open="image.open")
                         else:
-                            activeImage = layerNode.node_tree.nodes["Alpha"].image
-                            layout.template_ID(layerNode.node_tree.nodes["Alpha"], "image", new="image.new", open="image.open")
+                            activeImage = layerNode.node_tree.nodes["MT_TexMask"].image
+                            layout.template_ID(layerNode.node_tree.nodes["MT_TexMask"], "image", new="image.new", open="image.open")
                         
                         
                         #texture image paint
@@ -350,8 +350,8 @@ def vtools_autoSave(dummy):
         layerNode = paintingLayers.getLayerNodeById(l.layerID)
         if layerNode != None:
             if layerNode.node_tree != None:
-                imageColor = layerNode.node_tree.nodes["Color"].image
-                imageMask = layerNode.node_tree.nodes["Alpha"].image
+                imageColor = layerNode.node_tree.nodes["MT_TexMask"].image
+                imageMask = layerNode.node_tree.nodes["MT_TexMask"].image
                 
                 if imageColor != None:
                     if imageColor.is_dirty == True:

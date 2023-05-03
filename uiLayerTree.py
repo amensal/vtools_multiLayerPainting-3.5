@@ -105,10 +105,11 @@ def cb_setLayerVisibilty(self, value):
     lNode = paintingLayers.getLayerNodeById(self.layerID)
     
     if self.visible == True:
-        lNode.node_tree.nodes["PL_OpacityOffset"].inputs[0].default_value =  1
+        #lNode.node_tree.nodes["PL_OpacityOffset"].inputs[0].default_value =  1
+        lNode.inputs["Opacity"].default_value = 1
     else:
-        lNode.node_tree.nodes["PL_OpacityOffset"].inputs[0].default_value =  0
-        
+        #lNode.node_tree.nodes["PL_OpacityOffset"].inputs[0].default_value =  0
+        lNode.inputs["Opacity"].default_value = 0
     
 def cb_renameLayerSet(self, value):
     
@@ -176,8 +177,13 @@ class VTOOLS_UL_layerTree(bpy.types.UIList):
             #row.operator(paintingLayers.VTOOLS_OP_DuplicatePaintingLayer.bl_idname, text="", icon='HIDE_OFF')
             
             if layerNode.node_tree != None:
-                imageColor = layerNode.node_tree.nodes["Color"].image
-                imageMask = layerNode.node_tree.nodes["Alpha"].image
+                imageColor = layerNode.node_tree.nodes["MT_TexColor"].image
+                imageMask = layerNode.node_tree.nodes["MT_TexMask"].image
+                
+                """
+                if imageMask.name == "MT_baseTexMask":
+                    imageMask = None
+                """    
                 
                 if imageColor != None:
                     
@@ -221,9 +227,10 @@ class VTOOLS_UL_layerTree(bpy.types.UIList):
                 
        
                 if cs == "color":
-                    row.prop(layerNode.node_tree.nodes["Color"], "image", text="")
+                    row.prop(layerNode.node_tree.nodes["MT_TexColor"], "image", text="")
                 else:
-                    row.prop(layerNode.node_tree.nodes["Alpha"], "image", text="")
+                    maskNode = layerNode.node_tree.nodes["MT_TexMask"]
+                    row.prop(maskNode, "image", text="")
 
                 row = layout.row(align=True)
                 row.prop(item, "visible", text="", icon='HIDE_OFF', translate=False)           

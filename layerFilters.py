@@ -110,7 +110,7 @@ def getFirstFilterNode():
     firstFilterNode = None
     
     if layerNode != None:
-        filtersInitNode = layerNode.node_tree.nodes["PL_filtersColorInput"]
+        filtersInitNode = layerNode.node_tree.nodes["MT_filtersColorInput"]
         firstFilterNode = filtersInitNode.outputs[0].links[0].to_node
         
         if isFilterNode(firstFilterNode) == False:
@@ -168,7 +168,7 @@ class VTOOLS_OP_MoveLayerFilter(bpy.types.Operator):
                 if prevFilter != None:
                     prevOutputName = getFilterOutputName(prevFilter)
                 else:
-                    prevFilter = layerNode.node_tree.nodes["PL_filtersColorInput"]
+                    prevFilter = layerNode.node_tree.nodes["MT_filtersColorInput"]
                     prevOutputName = "Output"
                 
                 nextFilter = getFilterNodeSelectedById(fsId+1)
@@ -179,7 +179,7 @@ class VTOOLS_OP_MoveLayerFilter(bpy.types.Operator):
                     nextInputName = getFilterInputName(nextFilter)
                     nextOutputName = getFilterOutputName(nextFilter)
                 else:
-                    nextFilter = layerNode.node_tree.nodes["PL_filtersColorOutput"]
+                    nextFilter = layerNode.node_tree.nodes["MT_filtersColorOutput"]
                     nextInputName = "Input"
                     prevOutputName = "Output"
                     
@@ -190,7 +190,7 @@ class VTOOLS_OP_MoveLayerFilter(bpy.types.Operator):
                 if upperFilter != None:
                     upperInputName = getFilterInputName(upperFilter)
                 else:
-                    upperFilter = layerNode.node_tree.nodes["PL_filtersColorOutput"]
+                    upperFilter = layerNode.node_tree.nodes["MT_filtersColorOutput"]
                     upperInputName = "Input"
                      
                 paintingLayers.removeNodeLinks(layerNode.node_tree, filterNode, selOutputName)
@@ -229,7 +229,7 @@ class VTOOLS_OP_MoveLayerFilter(bpy.types.Operator):
                     prevInputName = getFilterInputName(prevFilter)
                     prevOutputName = getFilterOutputName(prevFilter)
                 else:
-                    prevFilter = layerNode.node_tree.nodes["PL_filtersColorInput"]
+                    prevFilter = layerNode.node_tree.nodes["MT_filtersColorInput"]
                     prevInputName = "Input"
                     prevOutputName = "Output"
                 
@@ -241,7 +241,7 @@ class VTOOLS_OP_MoveLayerFilter(bpy.types.Operator):
                     nextInputName = getFilterInputName(nextFilter)
                     nextOutputName = getFilterOutputName(nextFilter)
                 else:
-                    nextFilter = layerNode.node_tree.nodes["PL_filtersColorOutput"]
+                    nextFilter = layerNode.node_tree.nodes["MT_filtersColorOutput"]
                     nextInputName = "Input"
                     nextOutputName = "Output"
                     
@@ -252,7 +252,7 @@ class VTOOLS_OP_MoveLayerFilter(bpy.types.Operator):
                 if lowerFilter != None:
                     lowerOutputName = getFilterOutputName(lowerFilter)
                 else:
-                    lowerFilter = layerNode.node_tree.nodes["PL_filtersColorInput"]
+                    lowerFilter = layerNode.node_tree.nodes["MT_filtersColorInput"]
                     lowerOutputName = "Output"
                     
                 
@@ -348,7 +348,7 @@ class VTOOLS_OP_DeleteLayerFilter(bpy.types.Operator):
         if fNextType != None:
             nextSocket = fNext.inputs[fNextType[2]]    
         else:
-            nextSocket = layerNode.node_tree.nodes["PL_filtersColorOutput"].inputs[0]
+            nextSocket = layerNode.node_tree.nodes["MT_filtersColorOutput"].inputs[0]
             
         
         fPrev = getPrevFilterNode(filterNode, fSelType)
@@ -357,7 +357,7 @@ class VTOOLS_OP_DeleteLayerFilter(bpy.types.Operator):
         if fPrevType != None:
             prevSocket = fPrev.outputs[fPrevType[3]]
         else:
-            prevSocket = layerNode.node_tree.nodes["PL_filtersColorInput"].outputs[0]
+            prevSocket = layerNode.node_tree.nodes["MT_filtersColorInput"].outputs[0]
         
         
         layerNode.node_tree.links.new(prevSocket,nextSocket)
@@ -396,7 +396,7 @@ class VTOOLS_OP_AddLayerFilter(bpy.types.Operator):
         if fNextType != None:
             nextSocket = fNext.inputs[fNextType[2]]    
         else:
-            nextSocket = layerNode.node_tree.nodes["PL_filtersColorOutput"].inputs[0]
+            nextSocket = layerNode.node_tree.nodes["MT_filtersColorOutput"].inputs[0]
             
         
         fNewType = getFilterNodeType(pNewFilter)
@@ -407,7 +407,7 @@ class VTOOLS_OP_AddLayerFilter(bpy.types.Operator):
     def addFilterNode(self):
         
         layerNode = paintingLayers.getLayerNodeSelected()
-        filterFrame = layerNode.node_tree.nodes["PL_FrameClippingMaskFilters"]
+        filterFrame = layerNode.node_tree.nodes["MT_FrameClippingMaskFilters"]
         
         filterNode = layerNode.node_tree.nodes.new(type=self.filterType)
         filterNode.parent = filterFrame
@@ -416,8 +416,8 @@ class VTOOLS_OP_AddLayerFilter(bpy.types.Operator):
         filterNode.name = "MLPFilterNode" + filterNode.name
         
         colorTextureNode = layerNode.node_tree.nodes["Color"]
-        filterInputNode = layerNode.node_tree.nodes["PL_filtersColorInput"]
-        filterOutputNode = layerNode.node_tree.nodes["PL_filtersColorOutput"]
+        filterInputNode = layerNode.node_tree.nodes["MT_filtersColorInput"]
+        filterOutputNode = layerNode.node_tree.nodes["MT_filtersColorOutput"]
         
         if len(bpy.context.scene.mlpFilterLayerCollection) == 0:
             layerNode.node_tree.links.new(filterInputNode.outputs[0], filterNode.inputs[self.inputSocket])

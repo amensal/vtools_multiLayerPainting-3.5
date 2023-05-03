@@ -130,7 +130,7 @@ def getLayerDownByNode(pNode):
     nodeDn = None
     
     if pNode != None:
-        links = pNode.inputs["colorBelow"].links 
+        links = pNode.inputs["Color Below"].links 
 
     if  len(links) > 0: 
         nodeDn = links[0].from_node 
@@ -184,8 +184,8 @@ def connectLayerNodes(pLayerDn, pLayerUp):
         removeNodeLinks(mainTree, pLayerDn, "Color")
         removeNodeLinks(mainTree, pLayerDn, "Alpha")
         
-        mainTree.links.new(pLayerDn.outputs["Color"], pLayerUp.inputs["colorBelow"])
-        mainTree.links.new(pLayerDn.outputs["Alpha"], pLayerUp.inputs["alphaBelow"])
+        mainTree.links.new(pLayerDn.outputs["Color"], pLayerUp.inputs["Color Below"])
+        mainTree.links.new(pLayerDn.outputs["Alpha"], pLayerUp.inputs["Alpha Below"])
         done = True 
         
     return done
@@ -194,7 +194,7 @@ def isFirstLayer(pLayerNode):
     
     isFirst = False
     if pLayerNode.name.find("paintLayer") != -1:
-        bl = pLayerNode.inputs["colorBelow"].links
+        bl = pLayerNode.inputs["Color Below"].links
         if len(bl) > 0:
             if isMLPLayerNode(bl[0].from_node) == False:
                 isFirst = True
@@ -295,8 +295,8 @@ def configureFirstLayer():
                 removeNodeLinks(mainTree,inputNode, "Color")
                 removeNodeLinks(mainTree,inputNode, "Alpha")
                 
-                mainTree.links.new(inputNode.outputs["Color"], firstLayer.inputs["colorBelow"])
-                mainTree.links.new(inputNode.outputs["Alpha"], firstLayer.inputs["alphaBelow"])
+                mainTree.links.new(inputNode.outputs["Color"], firstLayer.inputs["Color Below"])
+                mainTree.links.new(inputNode.outputs["Alpha"], firstLayer.inputs["Alpha Below"])
                         
 
 def  orderLayerNodes():
@@ -496,6 +496,9 @@ class VTOOLS_OP_AddPaintingLayer(bpy.types.Operator):
         
         if bpy.data.node_groups.find(pNodeType) == -1:
             createNodes.setupPaintLayerNode()
+            print("CREATING LAYER")
+        else:
+            print("ENCONTRADO")
           
         mainTree = als.node_tree
         newLayer = mainTree.nodes.new(type="ShaderNodeGroup")

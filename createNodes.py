@@ -1,5 +1,13 @@
 import bpy
+import importlib
 
+if "createNodes_paintingLayers" in locals():
+    importlib.reload(createNodes_paintingLayers)
+else:
+    from vtools_multiLayerPainting import createNodes_paintingLayers
+    importlib.reload(createNodes_paintingLayers)
+    
+plUtils = createNodes_paintingLayers 
 
 def create_layerSetType():
     
@@ -506,10 +514,16 @@ def setupPaintLayerNode():
     paintLayerGroupId = bpy.data.node_groups.find('MTPaintLayer')
     
     if paintLayerGroupId < 0:
+        """
         layerNodeTypeName = create_paintLayerType()
+        """
+        layerNodeTypeName = plUtils.create_paintLayerType()
     else:
         bpy.data.node_groups[paintLayerGroupId].name += "_OLD"
+        """
         layerNodeTypeName = create_paintLayerType()
+        """
+        layerNodeTypeName = plUtils.create_paintLayerType()
         layerNodeTypeName = bpy.data.node_groups[paintLayerGroupId].name
         
     bpy.context.scene.vt_paintLayerNodeType = layerNodeTypeName
