@@ -350,7 +350,7 @@ def vtools_autoSave(dummy):
         layerNode = paintingLayers.getLayerNodeById(l.layerID)
         if layerNode != None:
             if layerNode.node_tree != None:
-                imageColor = layerNode.node_tree.nodes["MT_TexMask"].image
+                imageColor = layerNode.node_tree.nodes["MT_TexColor"].image
                 imageMask = layerNode.node_tree.nodes["MT_TexMask"].image
                 
                 if imageColor != None:
@@ -384,7 +384,7 @@ modules = (
     paintingUtils
 ) 
 
-classes = (VTOOLS_PT_MultiLayerPainting, VTOOLS_PT_PaintingSets, VTOOLS_PT_LayerTree, VTOOLS_PT_LayerFiltersProperties, VTOOLS_PT_LayerProperties, VTOOLS_PT_MergeProperties, )
+classes = (VTOOLS_PT_MultiLayerPainting, VTOOLS_PT_PaintingSets, VTOOLS_PT_LayerTree, VTOOLS_PT_LayerFiltersProperties, VTOOLS_PT_LayerProperties, ) #VTOOLS_PT_MergeProperties, 
 
 def register():
     

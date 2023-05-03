@@ -66,7 +66,7 @@ def cb_selectPaintingLayer(self,value):
             if colorImage != None:
                 findPaintingSlot(colorImage.name)
                 bpy.context.tool_settings.image_paint.canvas = bpy.data.images[colorImage.name]
-                colorImage.alpha_mode = "STRAIGHT" #"PREMUL" #IMAGE ALPHA MODE AS PREMULTIPLIED
+                #colorImage.alpha_mode = "STRAIGHT" #"PREMUL" #IMAGE ALPHA MODE AS PREMULTIPLIED
             else:
                 bpy.context.tool_settings.image_paint.canvas = None
                  
@@ -79,7 +79,7 @@ def cb_selectPaintingLayer(self,value):
             if maskImage != None:
                 findPaintingSlot(maskImage.name)
                 bpy.context.tool_settings.image_paint.canvas = bpy.data.images[maskImage.name]
-                maskImage.alpha_mode = "STRAIGHT" #"PREMUL" #IMAGE ALPHA MODE AS PREMULTIPLIED
+                #maskImage.alpha_mode = "STRAIGHT" #"PREMUL" #IMAGE ALPHA MODE AS PREMULTIPLIED
             else:
                 bpy.context.tool_settings.image_paint.canvas = None
         
@@ -107,10 +107,10 @@ def cb_setLayerVisibilty(self, value):
     
     if self.visible == True:
         #lNode.node_tree.nodes["PL_OpacityOffset"].inputs[0].default_value =  1
-        lNode.inputs["Opacity"].default_value = 1
+        lNode.inputs["Enabled"].default_value = 1
     else:
         #lNode.node_tree.nodes["PL_OpacityOffset"].inputs[0].default_value =  0
-        lNode.inputs["Opacity"].default_value = 0
+        lNode.inputs["Enabled"].default_value = 0
     
 def cb_renameLayerSet(self, value):
     

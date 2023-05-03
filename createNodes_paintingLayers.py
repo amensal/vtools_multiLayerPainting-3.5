@@ -15,6 +15,7 @@ def create_PLOpacityGroup():
     inputColor.default_value = [0,0,0,0]
     
     inputOpacity = opGroup.inputs.new('NodeSocketFloat','Opacity')
+    inputEnabled = opGroup.inputs.new('NodeSocketFloat','Enabled')
      
     
     #OUTPUTS
@@ -30,12 +31,21 @@ def create_PLOpacityGroup():
     n_opacityControl.operation = "MULTIPLY"
     n_opacityControl.use_clamp = True
     
+    #MAT SYSTEM
+    n_layerEnable = opGroup.nodes.new('ShaderNodeMath')
+    n_layerEnable.operation = "MULTIPLY"
+    n_layerEnable.use_clamp = True
+    
+    
     #LINKS
     opGroup.links.new(opInputs.outputs[inputColor.name], n_opacityControl.inputs[0]) 
     opGroup.links.new(opInputs.outputs[inputOpacity.name], n_opacityControl.inputs[1])
-    opGroup.links.new(n_opacityControl.outputs["Value"], opOutputs.inputs[outputColor.name])
     
-
+    opGroup.links.new(n_opacityControl.outputs["Value"], n_layerEnable.inputs[0])
+    opGroup.links.new(opInputs.outputs[inputEnabled.name], n_layerEnable.inputs[1])
+    
+    opGroup.links.new(n_layerEnable.outputs["Value"], opOutputs.inputs[outputColor.name])
+    
     return opGroup
     
 def create_PLInputs(pGroupNode):
@@ -61,16 +71,16 @@ def create_PLInputs(pGroupNode):
     inputLayerOpacity.default_value = 1
     
     #INPUT GLOBAL FILTER
-    inputGlobalFilter = mt_node.inputs.new('NodeSocketFloat','Global Filter')
+    inputGlobalFilter = mt_node.inputs.new('NodeSocketInt','Global Filter')
     inputGlobalFilter.min_value = 0
     inputGlobalFilter.max_value = 1
     inputGlobalFilter.default_value = 0
     
-    #INPUT USE COLOR BELOW / IS FIRST LAYER?
-    inputUseColorBelow = mt_node.inputs.new('NodeSocketFloat','Use Color Below')
-    inputUseColorBelow.min_value = 0
-    inputUseColorBelow.max_value = 1
-    inputUseColorBelow.default_value = 1
+    #INPUT LAYER ENABLED
+    inputLayerEnabled = mt_node.inputs.new('NodeSocketInt','Enabled')
+    inputLayerEnabled.min_value = 0
+    inputLayerEnabled.max_value = 1
+    inputLayerEnabled.default_value = 1
     
     #INPUT COLOR BELOW
     inputColorBelow = mt_node.inputs.new('NodeSocketColor','Color Below')
@@ -82,7 +92,7 @@ def create_PLInputs(pGroupNode):
     #POSITIONS
     n_inputFrame.location = (-500,0)
     
-    return [inputLayerOpacity, inputGlobalFilter, inputUseColorBelow, inputColorBelow, inputColorAlpha]
+    return [inputLayerOpacity, inputGlobalFilter, inputLayerEnabled, inputColorBelow, inputColorAlpha]
 
 def create_PLTextures(pGroupNode):
     
@@ -179,6 +189,7 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     inputMaskColor = coreGroup.nodes["MT_TexMask"].outputs["Color"]
     inputMaskAlpha = coreGroup.nodes["MT_TexMask"].outputs["Alpha"]
     
+    inputLayerOpacity = coreGroup.nodes["MT_layerOpacity"].outputs["Value"]
     # ---- NODES ----------- #
     
     #OUTPUT FRAME
@@ -297,8 +308,8 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     links.new(n_divideAlphaMissing.outputs["Value"], n_compareAlphaMissing.inputs["Factor"])
     
     #OPACITY CONTROL LINKS
-    links.new(coreInputs.outputs["Opacity"], n_opacityColor.inputs["Opacity"]) #OPACITY TO ALPHA COLOR
-    links.new(coreInputs.outputs["Opacity"], n_opacityAlpha.inputs["Opacity"]) #OPACTIY TO ALPHA MASK
+    links.new(inputLayerOpacity, n_opacityColor.inputs["Opacity"]) #OPACITY TO ALPHA COLOR
+    links.new(inputLayerOpacity, n_opacityAlpha.inputs["Opacity"]) #OPACTIY TO ALPHA MASK
     
     #TEXTURE LINKS 
     links.new(inputTexAlpha, n_opacityColor.inputs["Color"]) #TEX ALPHA TO ALPHA COLOR
@@ -331,19 +342,32 @@ def create_PLGlobalFilterOpacity(pMainGroup):
     mainInputs = globalFilterOpacity.nodes["MT_LayerInput"]
     inputGlobalFilter = mainInputs.outputs["Global Filter"]
     inputLayerOpacity = mainInputs.outputs["Opacity"]
+    inputLayerEnabled = mainInputs.outputs["Enabled"]
     
+    #MATH OPACITY GLOBAL
     n_opacityGlobalFilter = globalFilterOpacity.nodes.new('ShaderNodeMath')
     n_opacityGlobalFilter.operation = "MULTIPLY"
     n_opacityGlobalFilter.name = "MT_OpacityGlobalFiler"
     n_opacityGlobalFilter.label = "Opacity Global Filter"
+    
+    #MATH OPACITY ENABLE
+    n_layerEnable = globalFilterOpacity.nodes.new('ShaderNodeMath')
+    n_layerEnable.operation = "MULTIPLY"
+    n_layerEnable.name = "MT_layerOpacity"
+    n_layerEnable.label = "Layer Opacity"
         
     #LINKS
-    globalFilterOpacity.links.new(inputGlobalFilter, n_opacityGlobalFilter.inputs[0])
-    globalFilterOpacity.links.new(inputLayerOpacity, n_opacityGlobalFilter.inputs[1])
+    globalFilterOpacity.links.new(inputLayerOpacity, n_layerEnable.inputs[0])
+    globalFilterOpacity.links.new(inputLayerEnabled, n_layerEnable.inputs[1])
+    
+    globalFilterOpacity.links.new(n_layerEnable.outputs[0], n_opacityGlobalFilter.inputs[0])
+    globalFilterOpacity.links.new(inputGlobalFilter, n_opacityGlobalFilter.inputs[1])
     
     #PARENT AND POSITION
     n_opacityGlobalFilter.parent = globalFilterOpacity.nodes["MT_FrameInputs"]
+    n_layerEnable.parent = globalFilterOpacity.nodes["MT_FrameInputs"]
     n_opacityGlobalFilter.location = (250,0)
+    n_layerEnable.location = (250,-250)
     
     return globalFilterOpacity
 
@@ -413,12 +437,14 @@ def create_PLColorOutput(pMainGroup):
     
     #INPUT 
     inputColorBelow = colorOutput.nodes["MT_LayerInput"].outputs["Color Below"]
-    inputUseColorBelow = colorOutput.nodes["MT_LayerInput"].outputs["Use Color Below"]
+    inputLayerEnabled = colorOutput.nodes["MT_LayerInput"].outputs["Enabled"]
     inputTexColor = colorOutput.nodes["MT_TexColor"].outputs["Color"]
     inputGlobalFilter = colorOutput.nodes["MT_OpacityGlobalFiler"].outputs[0]
     inputFilterOutput = colorOutput.nodes["MT_filtersColorOutput"].outputs[0]
     inputColorOpacity = colorOutput.nodes["MT_ColorLayerOpacity"].outputs[0]
+    inputColorEnabled = colorOutput.nodes["MT_ColorLayerOpacity"].inputs["Enabled"]
     inputNodeLayerAlpha = colorOutput.nodes["MT_MixColorAndMaskAlphas"].outputs[2]
+    
     
     #OUTPUT FRAME
     n_outputFrame = colorOutput.nodes.new('NodeFrame')
@@ -487,6 +513,9 @@ def create_PLColorOutput(pMainGroup):
     links.new(inputFilterOutput, n_isGlobalFilter.inputs[7])
     links.new(inputGlobalFilter, n_isGlobalFilter.inputs["Factor"])
     
+    #COLOR ENABLED
+    links.new(inputLayerEnabled, inputColorEnabled)
+    
     #SOCKET RETURN
     colorOutputSocket = n_isGlobalFilter.outputs[2]
     
@@ -500,7 +529,8 @@ def create_PLAlphaOutput(pMainGroup):
     #INPUTS
     inputAlphaBelow = alphaOutput.nodes["MT_LayerInput"].outputs["Alpha Below"]
     inputAlphaOpacity = alphaOutput.nodes["MT_AlphaLayerOpacity"].outputs[0]
-    inputUseColorBelow = alphaOutput.nodes["MT_LayerInput"].outputs["Use Color Below"]
+    inputAlphaEnabled = alphaOutput.nodes["MT_AlphaLayerOpacity"].inputs["Enabled"]
+    inputLayerEnabled = alphaOutput.nodes["MT_LayerInput"].outputs["Enabled"]
     inputGlobalFilter = alphaOutput.nodes["MT_OpacityGlobalFiler"].outputs[0]
     
     
@@ -528,7 +558,7 @@ def create_PLAlphaOutput(pMainGroup):
     n_useAlphaBelow.name = "MT_useAlphaBelow"
     n_useAlphaBelow.label = "Use Alpha Below"
     n_useAlphaBelow.data_type = "RGBA" 
-    n_useAlphaBelow.inputs["Factor"].default_value = 0
+    n_useAlphaBelow.inputs["Factor"].default_value = 1
     n_useAlphaBelow.clamp_result = True
     n_useAlphaBelow.clamp_factor = True
     
@@ -566,7 +596,9 @@ def create_PLAlphaOutput(pMainGroup):
     #LINK USE COLOR BELOW
     links.new(n_addMasks.outputs[2], n_useAlphaBelow.inputs[7])
     links.new(inputAlphaOpacity, n_useAlphaBelow.inputs[6])
-    links.new(inputUseColorBelow, n_useAlphaBelow.inputs["Factor"])
+    
+    #ALPHA ENABLED
+    links.new(inputLayerEnabled, inputAlphaEnabled)
     
     #LINK GLOBAL FILTER
     links.new(n_useAlphaBelow.outputs[2], n_isGlobalFilter.inputs[6])
@@ -612,7 +644,7 @@ def create_paintLayerType():
     inputs = create_PLInputs(mt_node)
     inputLayerOpacity = inputs[0]
     inputGlobalFilter = inputs[1]
-    inputUseColorBelow = inputs[2]
+    inputLayerEnabled = inputs[2]
     inputColorBelow = inputs[3]
     inputColorAlpha = inputs[4]
      
