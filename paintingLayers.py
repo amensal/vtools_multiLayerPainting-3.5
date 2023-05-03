@@ -7,6 +7,7 @@ def getActiveLayerSet(pGetNodeTree):
     
     setNode = None
     
+    #if bpy.context.mode == "PAIN_TEXTURE":
     obj = bpy.context.object
     
     if obj != None:

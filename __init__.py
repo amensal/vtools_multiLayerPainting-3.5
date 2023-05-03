@@ -47,7 +47,6 @@ def getPaintingActiveImage():
     
     activeImage = None
     
-    
     layerNode = paintingLayers.getLayerNodeSelected()
     
     if layerNode != None:
