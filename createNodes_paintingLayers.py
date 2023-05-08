@@ -71,7 +71,7 @@ def create_PLInputs(pGroupNode):
     inputLayerOpacity.default_value = 1
     
     #INPUT GLOBAL FILTER
-    inputGlobalFilter = mt_node.inputs.new('NodeSocketInt','Global Filter')
+    inputGlobalFilter = mt_node.inputs.new('NodeSocketFloat','Global Filter')
     inputGlobalFilter.min_value = 0
     inputGlobalFilter.max_value = 1
     inputGlobalFilter.default_value = 0
