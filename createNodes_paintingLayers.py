@@ -190,6 +190,8 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     inputMaskAlpha = coreGroup.nodes["MT_TexMask"].outputs["Alpha"]
     
     inputLayerOpacity = coreGroup.nodes["MT_layerOpacity"].outputs["Value"]
+    inputGlobalFilter = coreGroup.nodes["MT_OpacityGlobalFiler"].outputs["Value"]
+    
     # ---- NODES ----------- #
     
     #OUTPUT FRAME
@@ -270,6 +272,18 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     
     n_convertBW.parent = n_maskConversion
     
+    #GREATHER THAN
+    n_alphaGreaterThan = coreGroup.nodes.new("ShaderNodeMath")
+    n_alphaGreaterThan.name = "MT_alphaGreaterThan"
+    n_alphaGreaterThan.label = "Alpha Greater Than"
+    n_alphaGreaterThan.operation = "GREATER_THAN"
+    n_alphaGreaterThan.use_clamp = True
+    n_alphaGreaterThan.inputs[0].default_value = 0.0
+    n_alphaGreaterThan.inputs[1].default_value = 0
+    
+    n_alphaGreaterThan.parent = n_maskConversion
+    
+    
     #MIX COLOR
     n_mixAlphas = coreGroup.nodes.new("ShaderNodeMix")
     n_mixAlphas.name = "MT_MixColorAndMaskAlphas"
@@ -281,16 +295,21 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     
     n_mixAlphas.parent = n_maskConversion
     
-    #GREATHER THAN
-    n_alphaGreaterThan = coreGroup.nodes.new("ShaderNodeMath")
-    n_alphaGreaterThan.name = "MT_alphaGreaterThan"
-    n_alphaGreaterThan.label = "Alpha Greater Than"
-    n_alphaGreaterThan.operation = "GREATER_THAN"
-    n_alphaGreaterThan.use_clamp = True
-    n_alphaGreaterThan.inputs[0].default_value = 0.0
-    n_alphaGreaterThan.inputs[1].default_value = 0
     
-    n_alphaGreaterThan.parent = n_maskConversion
+    #USE GLOBAL FILTER ALPHA
+    
+    n_useGlobalFilter = coreGroup.nodes.new("ShaderNodeMix")
+    n_useGlobalFilter.name = "MT_useGlobalFilterAlpha"
+    n_useGlobalFilter.label = "Use Global Filter Alpha"
+    n_useGlobalFilter.blend_type = "MIX"
+    n_useGlobalFilter.data_type = "RGBA"  
+    n_useGlobalFilter.inputs[0].default_value = 1
+    n_useGlobalFilter.clamp_result = True
+    n_useGlobalFilter.inputs[6].default_value = (0,0,0,1)
+    n_useGlobalFilter.inputs[7].default_value = (1,1,1,1)
+    
+    
+    n_useGlobalFilter.parent = n_maskConversion
 
     # ----------- LINKS ------------------ #
     
@@ -318,9 +337,12 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     
     #MASK CONVERSION LINKS
     links.new(n_compareColorMissing.outputs[2], n_convertBW.inputs["Color"]) #MASK COLOR TO BW
-    links.new(n_convertBW.outputs["Val"], n_mixAlphas.inputs[7]) #MASK COLOR TO BW
-    links.new(n_mixAlphas.outputs[2], n_opacityAlpha.inputs["Color"]) #BW / MIX TO OPACITY
-    links.new(n_alphaGreaterThan.outputs["Value"], n_mixAlphas.inputs["Factor"]) #BW / MIX TO OPACITY
+    links.new(inputGlobalFilter, n_useGlobalFilter.inputs["Factor"]) #IS FILTER LAYER TO FILTER MASK
+    links.new(inputTexAlpha, n_useGlobalFilter.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
+    links.new(n_useGlobalFilter.outputs[2], n_mixAlphas.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
+    links.new(n_convertBW.outputs["Val"], n_mixAlphas.inputs[7]) #BW TO MIX OPACITY
+    links.new(n_mixAlphas.outputs[2], n_opacityAlpha.inputs["Color"]) #MIX OPACITY TO ALPHA GROUP
+    links.new(n_alphaGreaterThan.outputs["Value"], n_mixAlphas.inputs["Factor"]) 
     
     #POSITION
     n_maskConversion.location = (600, -750)
@@ -330,7 +352,8 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     n_compareColorMissing.location = (400,0)
     n_compareAlphaMissing.location = (400,-300)
     n_convertBW.location = (600,0)
-    n_mixAlphas.location = (800,0)
+    n_useGlobalFilter.location = (800,0)
+    n_mixAlphas.location = (1000,0)
     n_alphaGreaterThan.location = (600,-150)
     
     return coreGroup
@@ -506,12 +529,13 @@ def create_PLColorOutput(pMainGroup):
     links.new(n_blendMode.outputs[2], n_useColorBelow.inputs[7])
     links.new(inputColorBelow, n_useColorBelow.inputs[6])
     links.new(inputNodeLayerAlpha, n_useColorBelow.inputs["Factor"])
+    links.new(inputNodeLayerAlpha, n_isGlobalFilter.inputs["Factor"])
     #links.new(inputUseColorBelow, n_useColorBelow.inputs["Factor"])
     
     #LINK GLOBAL FILTER
     links.new(n_useColorBelow.outputs[2], n_isGlobalFilter.inputs[6])
     links.new(inputFilterOutput, n_isGlobalFilter.inputs[7])
-    links.new(inputGlobalFilter, n_isGlobalFilter.inputs["Factor"])
+    #links.new(inputGlobalFilter, n_isGlobalFilter.inputs["Factor"])
     
     #COLOR ENABLED
     links.new(inputLayerEnabled, inputColorEnabled)
