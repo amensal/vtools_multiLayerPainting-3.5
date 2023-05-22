@@ -338,7 +338,7 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     #MASK CONVERSION LINKS
     links.new(n_compareColorMissing.outputs[2], n_convertBW.inputs["Color"]) #MASK COLOR TO BW
     links.new(inputGlobalFilter, n_useGlobalFilter.inputs["Factor"]) #IS FILTER LAYER TO FILTER MASK
-    links.new(inputTexAlpha, n_useGlobalFilter.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
+    #links.new(inputTexAlpha, n_useGlobalFilter.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
     links.new(n_useGlobalFilter.outputs[2], n_mixAlphas.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
     links.new(n_convertBW.outputs["Val"], n_mixAlphas.inputs[7]) #BW TO MIX OPACITY
     links.new(n_mixAlphas.outputs[2], n_opacityAlpha.inputs["Color"]) #MIX OPACITY TO ALPHA GROUP
@@ -467,7 +467,7 @@ def create_PLColorOutput(pMainGroup):
     inputColorOpacity = colorOutput.nodes["MT_ColorLayerOpacity"].outputs[0]
     inputColorEnabled = colorOutput.nodes["MT_ColorLayerOpacity"].inputs["Enabled"]
     inputNodeLayerAlpha = colorOutput.nodes["MT_MixColorAndMaskAlphas"].outputs[2]
-    
+    inputUseGlobalFilterAlpha = colorOutput.nodes["MT_useGlobalFilterAlpha"].inputs[6]
     
     #OUTPUT FRAME
     n_outputFrame = colorOutput.nodes.new('NodeFrame')
@@ -536,6 +536,10 @@ def create_PLColorOutput(pMainGroup):
     links.new(n_useColorBelow.outputs[2], n_isGlobalFilter.inputs[6])
     links.new(inputFilterOutput, n_isGlobalFilter.inputs[7])
     #links.new(inputGlobalFilter, n_isGlobalFilter.inputs["Factor"])
+    
+    #LINK USE COLOR FILTER ALPHA
+    links.new(inputColorOpacity, inputUseGlobalFilterAlpha)
+    
     
     #COLOR ENABLED
     links.new(inputLayerEnabled, inputColorEnabled)
