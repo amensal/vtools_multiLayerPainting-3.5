@@ -195,12 +195,13 @@ def isFirstLayer(pLayerNode):
     
     isFirst = False
     if pLayerNode.name.find("paintLayer") != -1:
-        bl = pLayerNode.inputs["Color Below"].links
-        if len(bl) > 0:
-            if isMLPLayerNode(bl[0].from_node) == False:
+        if len(pLayerNode.inputs) > 0:
+            bl = pLayerNode.inputs["Color Below"].links
+            if len(bl) > 0:
+                if isMLPLayerNode(bl[0].from_node) == False:
+                    isFirst = True
+            else:
                 isFirst = True
-        else:
-            isFirst = True
     
     return isFirst
 
@@ -386,7 +387,7 @@ class VTOOLS_OP_CollectLayersFromSet(bpy.types.Operator):
                 nextLayer = getNextNodeLayer(nextLayer)
             
         updateLayerNodes()
-        setAllLayersVisibility()
+        #setAllLayersVisibility()
         
         return {'FINISHED'}
         
@@ -404,8 +405,8 @@ class VTOOLS_OP_DeletePaintingLayer(bpy.types.Operator):
         maskImage = None
         
         if pActiveLayer.node_tree != None:
-            colorImage = pActiveLayer.node_tree.nodes["Color"].image
-            maskImage = pActiveLayer.node_tree.nodes["Alpha"].image
+            colorImage = pActiveLayer.node_tree.nodes["MT_TexColor"].image
+            maskImage = pActiveLayer.node_tree.nodes["MT_TexMask"].image
         
         if colorImage != None:
             if colorImage.use_fake_user == False:  
@@ -491,6 +492,50 @@ class VTOOLS_OP_AddPaintingLayer(bpy.types.Operator):
     bl_description = "Add a new painting layer"
     bl_options = {'REGISTER', 'UNDO'}
     
+    def findUniqueName(self, pName):
+        
+        name = ""
+        index = 0
+        searchName = pName + "." + "000"
+        name = searchName
+        
+        #NEW INDEX
+
+        while bpy.data.images.find(searchName) != -1:
+            index += 1
+            newIndex = str(index)
+
+            #ADD 3 DIGITS
+            while len(newIndex) < 3:
+                newIndex = "0" + newIndex
+                
+            searchName = pName + "." + newIndex
+            name = searchName
+        
+        return name     
+        
+    def createLayerImages(self, pLayerSet, pLayerNode):
+        
+        imageSize = bpy.context.scene.mlpDefaultImageLayerSize
+        colorImageName = self.findUniqueName(pLayerSet.label + "RGB") 
+        maskImageName = self.findUniqueName(pLayerSet.label + "MaSK")
+        
+        bpy.ops.image.new(name=colorImageName, width=imageSize, height=imageSize, color=(0.0, 0.0, 0.0, 0.0), alpha=True, generated_type='BLANK', float=False, use_stereo_3d=False, tiled=False)
+        bpy.data.images[colorImageName].use_fake_user = True
+        
+        bpy.ops.image.new(name=maskImageName, width=imageSize, height=imageSize, color=(1.0, 1.0, 1.0, 1.0), alpha=False, generated_type='BLANK', float=False, use_stereo_3d=False, tiled=False)
+        bpy.data.images[maskImageName].use_fake_user = True    
+                
+            
+        #pLayerNode.node_tree.nodes["MT_TexColor"].image = bpy.data.images[colorImageName]
+        #pLayerNode.node_tree.nodes["MT_TexMask"].image = bpy.data.images[maskImageName]
+
+        pLayerNode.node_tree.nodes["MT_TexColor"].image = bpy.data.images[colorImageName]
+        pLayerNode.node_tree.nodes["MT_TexMask"].image = bpy.data.images[maskImageName]
+        
+        
+        return True
+    
     def addLayer(self,pNodeType):
         newLayer = None
         als = getActiveLayerSet(False)
@@ -508,7 +553,9 @@ class VTOOLS_OP_AddPaintingLayer(bpy.types.Operator):
         newLayer.label = "paintLayer"
         
         newLayer.location.x = bpy.context.scene.mlpLayerTreeCollection_ID*200
-    
+        
+        self.createLayerImages(als, newLayer)
+        
         return newLayer
     
     def bridgeLayers(self, pActiveLayer, pLayerOverActive, pNewLayer):

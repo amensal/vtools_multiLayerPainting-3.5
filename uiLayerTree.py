@@ -17,14 +17,15 @@ def deselectAllLayerNodes():
     
     for i in range(0, len(bpy.context.scene.mlpLayerTreeCollection)):
         lNode = paintingLayers.getLayerNodeById(i)
-        if lNode.node_tree != None:
-            colorNode = lNode.node_tree.nodes["MT_TexColor"]
-            maskNode = lNode.node_tree.nodes["MT_TexMask"]
-            
-            lNode.node_tree.nodes.active = lNode.node_tree.nodes[0]
-            colorNode.select = False
-            maskNode.select = False
-            lNode.select = False
+        if lNode != None:
+            if lNode.node_tree != None:
+                colorNode = lNode.node_tree.nodes["MT_TexColor"]
+                maskNode = lNode.node_tree.nodes["MT_TexMask"]
+                
+                lNode.node_tree.nodes.active = lNode.node_tree.nodes[0]
+                colorNode.select = False
+                maskNode.select = False
+                lNode.select = False
     
     
 def findPaintingSlot(pImageName):
@@ -302,7 +303,8 @@ def register():
     #bpy.context.scene.mlpFilterLayerCollection.clear()
     #bpy.context.scene.mlpFilterLayerCollection_ID = -1
     
-
+    bpy.types.Scene.mlpDefaultImageLayerSize = bpy.props.IntProperty(default = 1024)
+    
     return {'FINISHED'}
 
 def unregister():
@@ -322,6 +324,8 @@ def unregister():
     
     del bpy.types.Scene.mlpFilterLayerCollection_ID
     del bpy.types.Scene.mlpFilterLayerCollection
+    
+    del bpy.types.Scene.mlpDefaultImageLayerSize
      
     return {'FINISHED'}
 

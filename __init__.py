@@ -75,7 +75,7 @@ class VTOOLS_PT_PaintingSets(bpy.types.Panel):
     def draw(self, context):
         
         layout = self.layout
-        
+
         if bpy.context.scene.vt_mpPaintActiveMaterial == bpy.context.object.active_material.name:
             if context.object.active_material != None:
              
@@ -108,16 +108,20 @@ class VTOOLS_PT_LayerTree(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
+        layout.use_property_split = True
+        layout.use_property_decorate = False
         
         if bpy.context.scene.vt_mpPaintActiveMaterial == bpy.context.object.active_material.name:
             
             paintingSetId = bpy.context.scene.mlpLayerSetsCollection_ID > -1
-
+            
+            
             if paintingSetId == True and context.object.active_material != None:
                 
                 
-                layerNode = paintingLayers.getLayerNodeSelected()
+                layout.prop(bpy.context.scene, "mlpDefaultImageLayerSize", text="Layer Size ")
                 
+                layerNode = paintingLayers.getLayerNodeSelected()
                 layout.operator("image.save_all_modified", text="Save All Images", icon='FILE_TICK')
                 
                 if layerNode != None:

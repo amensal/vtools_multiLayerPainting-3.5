@@ -71,7 +71,7 @@ def create_PLInputs(pGroupNode):
     inputLayerOpacity.default_value = 1
     
     #INPUT GLOBAL FILTER
-    inputGlobalFilter = mt_node.inputs.new('NodeSocketFloat','Global Filter')
+    inputGlobalFilter = mt_node.inputs.new('NodeSocketInt','Global Filter')
     inputGlobalFilter.min_value = 0
     inputGlobalFilter.max_value = 1
     inputGlobalFilter.default_value = 0
@@ -108,6 +108,7 @@ def create_PLTextures(pGroupNode):
     colorTexture.label = "COLOR"
     colorTexture.name = "MT_TexColor"
     #colorTexture.alpha_mode = "PREMUL"
+    colorTexture.image = bpy.data.images["mpl_defaulColortLayerImage"]
     
     """
     #BASE ALPHA TEXTURE - NEEDED IN CYCLES IF NOT PRRSENT NONE ALPHA = PURPLE
@@ -130,6 +131,7 @@ def create_PLTextures(pGroupNode):
     maskTexture.label = "ALPHA"
     maskTexture.name = "MT_TexMask"    
     #maskTexture.image = bpy.data.images["MT_baseTexMask"]
+    maskTexture.image = bpy.data.images["mpl_defaulAlphatLayerImage"]
 
     
     #UV NODES
@@ -192,6 +194,8 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     inputLayerOpacity = coreGroup.nodes["MT_layerOpacity"].outputs["Value"]
     inputGlobalFilter = coreGroup.nodes["MT_OpacityGlobalFiler"].outputs["Value"]
     
+    inputAlphaBelow = coreGroup.nodes["MT_LayerInput"].outputs["Alpha Below"]
+    
     # ---- NODES ----------- #
     
     #OUTPUT FRAME
@@ -213,6 +217,7 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     
     # ---------------------- MASK CONVERSION  ------------------- #
     
+    """
     #MISSING TEXTURE 
     n_missingTexture = coreGroup.nodes.new("ShaderNodeRGB")
     n_missingTexture.name = "MT_MissingTextureColor"
@@ -283,20 +288,36 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     
     n_alphaGreaterThan.parent = n_maskConversion
     
+    """
     
     #MIX COLOR
     n_mixAlphas = coreGroup.nodes.new("ShaderNodeMix")
     n_mixAlphas.name = "MT_MixColorAndMaskAlphas"
     n_mixAlphas.label = "Mix Color/Mask"
-    n_mixAlphas.blend_type = "MULTIPLY"
+    n_mixAlphas.blend_type = "MIX"
     n_mixAlphas.data_type = "RGBA"  
-    n_mixAlphas.inputs[0].default_value = 1
+    n_mixAlphas.inputs[0].default_value = 0
     n_mixAlphas.clamp_result = True
     
     n_mixAlphas.parent = n_maskConversion
     
     
-    #USE GLOBAL FILTER ALPHA
+    #----------- USE GLOBAL FILTER ALPHA
+    
+    
+    #BURN PREVIOUS ALPHA
+    
+    n_burnPrevAlpha = coreGroup.nodes.new("ShaderNodeMix")
+    n_burnPrevAlpha.name = "MT_BurnPreviousAlpha"
+    n_burnPrevAlpha.label = "Color Burn Previous Alpha"
+    n_burnPrevAlpha.blend_type = "BURN"
+    n_burnPrevAlpha.data_type = "RGBA"  
+    n_burnPrevAlpha.inputs[0].default_value = 1
+    n_burnPrevAlpha.clamp_result = True
+    
+    n_burnPrevAlpha.parent = n_maskConversion
+    
+    #USE GLOBAL FILTER
     
     n_useGlobalFilter = coreGroup.nodes.new("ShaderNodeMix")
     n_useGlobalFilter.name = "MT_useGlobalFilterAlpha"
@@ -313,6 +334,7 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
 
     # ----------- LINKS ------------------ #
     
+    """
     #MISSING TEXTURE LINKS
     links.new(n_missingTexture.outputs["Color"], n_divideColorMissing.inputs[1])
     links.new(n_missingTexture.outputs["Color"], n_divideAlphaMissing.inputs[1])
@@ -325,6 +347,7 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     
     links.new(n_divideColorMissing.outputs["Value"], n_compareColorMissing.inputs["Factor"]) 
     links.new(n_divideAlphaMissing.outputs["Value"], n_compareAlphaMissing.inputs["Factor"])
+    """
     
     #OPACITY CONTROL LINKS
     links.new(inputLayerOpacity, n_opacityColor.inputs["Opacity"]) #OPACITY TO ALPHA COLOR
@@ -333,28 +356,42 @@ def create_PLOpacityControls(pMainGroup, pOpacityGroup):
     #TEXTURE LINKS 
     links.new(inputTexAlpha, n_opacityColor.inputs["Color"]) #TEX ALPHA TO ALPHA COLOR
     links.new(inputTexAlpha, n_mixAlphas.inputs[6]) #TEX ALPHA TO MIX
-    links.new(n_compareAlphaMissing.outputs[2], n_alphaGreaterThan.inputs[0]) #TEX ALPHA TO MIX
+    
     
     #MASK CONVERSION LINKS
-    links.new(n_compareColorMissing.outputs[2], n_convertBW.inputs["Color"]) #MASK COLOR TO BW
-    links.new(inputGlobalFilter, n_useGlobalFilter.inputs["Factor"]) #IS FILTER LAYER TO FILTER MASK
+    #links.new(n_compareAlphaMissing.outputs[2], n_alphaGreaterThan.inputs[0]) #TEX ALPHA TO MIX
+    #links.new(n_compareColorMissing.outputs[2], n_convertBW.inputs["Color"]) #MASK COLOR TO BW
     #links.new(inputTexAlpha, n_useGlobalFilter.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
+    #links.new(n_convertBW.outputs["Val"], n_mixAlphas.inputs[7]) #BW TO MIX OPACITY
+    #links.new(n_alphaGreaterThan.outputs["Value"], n_mixAlphas.inputs["Factor"]) 
+    
+    #links.new(inputGlobalFilter, n_useGlobalFilter.inputs["Factor"]) #IS FILTER LAYER TO FILTER MASK
+    
+    links.new(inputGlobalFilter, n_burnPrevAlpha.inputs[6]) 
+    links.new(inputAlphaBelow, n_burnPrevAlpha.inputs[7]) 
+    
     links.new(n_useGlobalFilter.outputs[2], n_mixAlphas.inputs[6]) #USE FILTER LAYER MASK TO MIX ALPHA
-    links.new(n_convertBW.outputs["Val"], n_mixAlphas.inputs[7]) #BW TO MIX OPACITY
+    links.new(inputTexAlpha, n_mixAlphas.inputs[7]) #USE FILTER LAYER MASK TO MIX ALPHA
+    #links.new(inputColorLayerOpacity, n_useGlobalFilter.inputs[6]) #BW TO MIX OPACITY
+    links.new(inputMaskColor, n_useGlobalFilter.inputs[7]) #BW TO MIX OPACITY
+    links.new(n_burnPrevAlpha.outputs[2], n_useGlobalFilter.inputs["Factor"]) #BW TO MIX OPACITY
     links.new(n_mixAlphas.outputs[2], n_opacityAlpha.inputs["Color"]) #MIX OPACITY TO ALPHA GROUP
-    links.new(n_alphaGreaterThan.outputs["Value"], n_mixAlphas.inputs["Factor"]) 
+    #links.new(inputMaskAlpha, n_mixAlphas.inputs["Factor"])
+    
+     
     
     #POSITION
     n_maskConversion.location = (600, -750)
     #n_missingTexture.location = (,)
-    n_divideColorMissing.location = (200,0)
-    n_divideAlphaMissing.location = (200,-200)
-    n_compareColorMissing.location = (400,0)
-    n_compareAlphaMissing.location = (400,-300)
-    n_convertBW.location = (600,0)
+    #n_divideColorMissing.location = (200,0)
+    #n_divideAlphaMissing.location = (200,-200)
+    #n_compareColorMissing.location = (400,0)
+    #n_compareAlphaMissing.location = (400,-300)
+    #n_convertBW.location = (600,0)
+    n_burnPrevAlpha.location = (600,0)
     n_useGlobalFilter.location = (800,0)
     n_mixAlphas.location = (1000,0)
-    n_alphaGreaterThan.location = (600,-150)
+    #n_alphaGreaterThan.location = (600,-150)
     
     return coreGroup
 
@@ -524,7 +561,7 @@ def create_PLColorOutput(pMainGroup):
     links.new(inputColorBelow, n_blendMode.inputs[6])
     links.new(inputFilterOutput, n_blendMode.inputs[7])
     links.new(inputColorOpacity, n_blendMode.inputs["Factor"])
-    
+
     #LINK USE COLOR BELOW
     links.new(n_blendMode.outputs[2], n_useColorBelow.inputs[7])
     links.new(inputColorBelow, n_useColorBelow.inputs[6])

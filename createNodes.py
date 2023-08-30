@@ -9,6 +9,20 @@ else:
     
 plUtils = createNodes_paintingLayers 
 
+def create_defaultLayerImages():
+    
+    if bpy.data.images.find("mpl_defaulColortLayerImage") == -1:
+        #defaultColorImg = bpy.data.images.new(name= "mpl_defaulColortLayerImage", width=1, height =1, )
+        bpy.ops.image.new(name='mpl_defaulColortLayerImage', width=1, height=1, color=(0.0, 0.0, 0.0, 0.0), alpha=True, generated_type='BLANK', float=False, use_stereo_3d=False, tiled=False)
+        bpy.data.images["mpl_defaulColortLayerImage"].use_fake_user = True
+            
+    
+    if bpy.data.images.find("mpl_defaulAlphatLayerImage") == -1:
+        #defaultAlphaImg = bpy.data.images.new("mpl_defaulAlphatLayerImage")
+        bpy.ops.image.new(name='mpl_defaulAlphatLayerImage', width=1, height=1, color=(1.0, 1.0, 1.0, 1.0), alpha=False, generated_type='BLANK', float=False, use_stereo_3d=False, tiled=False)
+        bpy.data.images["mpl_defaulAlphatLayerImage"].use_fake_user = True
+        
+            
 def create_layerSetType():
     
     # create a group
@@ -348,12 +362,17 @@ def create_paintLayerType():
     #colorTexture.image = colorImage
     colorTexture.label = "COLOR"
     colorTexture.name = "Color"
+    colorTexture.image = bpy.data.images["mpl_defaulColortLayerImage"]
     #colorTexture.alpha_mode = "PREMUL"
 
     maskTexture = mt_node.nodes.new("ShaderNodeTexImage")
     #maskTexture.image = maskImage
     maskTexture.label = "ALPHA"
     maskTexture.name = "Alpha"
+    maskTexture.image = bpy.data.images["mpl_defaulAlphatLayerImage"]
+    
+    print("--------- CREATING IMAGES --------------")
+    
     #maskTexture.alpha_mode = "PREMUL"
     
     
@@ -552,6 +571,7 @@ def init():
     setupLayerSetNode()
     setupPaintLayerNode()
     setupPaintingSpace()
+    create_defaultLayerImages()
     
     
     return {'FINISHED'}
