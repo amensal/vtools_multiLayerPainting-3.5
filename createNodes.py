@@ -22,7 +22,15 @@ def create_defaultLayerImages():
         bpy.ops.image.new(name='mpl_defaulAlphatLayerImage', width=1, height=1, color=(1.0, 1.0, 1.0, 1.0), alpha=False, generated_type='BLANK', float=False, use_stereo_3d=False, tiled=False)
         bpy.data.images["mpl_defaulAlphatLayerImage"].use_fake_user = True
         
-            
+
+def setupPaintingMaterial():
+    
+    for m in bpy.context.object.data.materials:
+        m.blend_method = "BLEND"
+        m.use_backface_culling = True
+        m.show_transparent_back = True
+
+
 def create_layerSetType():
     
     # create a group
@@ -568,10 +576,12 @@ def init():
     #bpy.context.tool_settings.image_paint.mode = "MATERIAL"
     bpy.context.scene.vt_layerSetNodeType = ""
     
+    create_defaultLayerImages()
+    setupPaintingMaterial()
     setupLayerSetNode()
     setupPaintLayerNode()
     setupPaintingSpace()
-    create_defaultLayerImages()
+    
     
     
     return {'FINISHED'}
