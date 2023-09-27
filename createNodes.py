@@ -26,7 +26,7 @@ def create_defaultLayerImages():
 def setupPaintingMaterial():
     
     for m in bpy.context.object.data.materials:
-        m.blend_method = "BLEND"
+        m.blend_method = "HASHED"
         m.use_backface_culling = True
         m.show_transparent_back = True
 
